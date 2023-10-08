@@ -1,13 +1,32 @@
 <script setup>
-import { ref } from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
+import {useNotificationStore} from "@/store/notification.js";
 
 const showingNavigationDropdown = ref(false);
+
+const nav = reactive([
+    {
+        linkName: 'dashboard',
+        name: 'Dashboard'
+    },
+    {
+        linkName: 'users.index',
+        name: 'Users'
+    },
+])
+
+
+const notificationStore = useNotificationStore()
+
+onMounted(() => {
+    notificationStore.fetchFriendList()
+})
 </script>
 
 <template>
@@ -22,24 +41,60 @@ const showingNavigationDropdown = ref(false);
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('dashboard')">
                                     <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
+                                        class="text-gray-800"
                                     />
                                 </Link>
                             </div>
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
+                                <NavLink
+                                    v-for="navItem in nav"
+                                    :href="route(navItem.linkName)"
+                                    :active="route().current(navItem.linkName)"
+                                >
+                                    {{ navItem.name }}
                                 </NavLink>
                             </div>
                         </div>
 
-                        <div class="hidden sm:flex sm:items-center sm:ml-6">
-                            <!-- Settings Dropdown -->
-                            <div class="ml-3 relative">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
+                        <div class="flex">
+                            <div class="hidden sm:flex sm:items-center sm:ml-2">
+                                <!-- Settings Dropdown -->
+                                <div class="ml-3 relative">
+                                    <Dropdown align="right" width="320">
+                                        <template #trigger>
+                                            <button type="button" class="relative rounded-full p-1 text-gray-400 hover:text-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 ">
+                                                <span class="absolute -inset-1.5"></span>
+                                                <span class="sr-only">View notifications</span>
+                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                                </svg>
+<!--                                                <div-->
+<!--                                                    v-if="Array.isArray(notifications) "-->
+<!--                                                    class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -right-2">-->
+<!--                                                    {{ Array.isArray(notifications) ? notifications.length : 0 }}-->
+<!--                                                </div>-->
+                                            </button>
+                                        </template>
+
+                                        <template #content>
+                                            <div class="p-2">
+                                                <a v-for="notification in notifications" href="#" class="block w-[320px] p-6 bg-white  rounded-lg  hover:bg-gray-50 mb-1">
+                                                    <h5 class="mb-1 text-lg font-bold tracking-tight text-dark" style="line-height: 1.2">Noteworthy technology acquisitions 2021</h5>
+                                                    <p class="font-normal text-dark-200 text-sm">Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.</p>
+                                                </a>
+                                            </div>
+
+                                        </template>
+                                    </Dropdown>
+                                </div>
+                            </div>
+                            <div class="hidden sm:flex sm:items-center sm:ml-6">
+                                <!-- Settings Dropdown -->
+                                <div class="ml-3 relative">
+                                    <Dropdown align="right" width="48">
+                                        <template #trigger>
                                         <span class="inline-flex rounded-md">
                                             <button
                                                 type="button"
@@ -61,17 +116,19 @@ const showingNavigationDropdown = ref(false);
                                                 </svg>
                                             </button>
                                         </span>
-                                    </template>
+                                        </template>
 
-                                    <template #content>
-                                        <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
-                                        <DropdownLink :href="route('logout')" method="post" as="button">
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
+                                        <template #content>
+                                            <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
+                                            <DropdownLink :href="route('logout')" method="post" as="button">
+                                                Log Out
+                                            </DropdownLink>
+                                        </template>
+                                    </Dropdown>
+                                </div>
                             </div>
                         </div>
+
 
                         <!-- Hamburger -->
                         <div class="-mr-2 flex items-center sm:hidden">

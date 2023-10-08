@@ -35,6 +35,11 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
+        if ($request->hasFile('img')) {
+            $imgPath = $request->file('img')->store('public/images'); // Путь к сохраненному изображению
+            $request->user()->img = str_replace('public/', '', $imgPath);
+        }
+
         $request->user()->save();
 
         return Redirect::route('profile.edit');

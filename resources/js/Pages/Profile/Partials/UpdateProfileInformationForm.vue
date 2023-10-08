@@ -3,7 +3,10 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import {Link, router, useForm, usePage} from '@inertiajs/vue3';
+import TextArea from "@/Components/TextArea.vue";
+import { Inertia } from '@inertiajs/inertia'
+import FileUpload from "@/Components/FileUpload.vue";
 
 defineProps({
     mustVerifyEmail: {
@@ -19,7 +22,33 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    content: user.content,
+    img: user.img
 });
+
+const onFormSubmit = async () => {
+    const formData = new FormData();
+
+    formData.append('name', form.name);
+    formData.append('email', form.email);
+    formData.append('content', form.content);
+
+    if (form.img instanceof File) {
+        formData.append('img', form.img);
+    }
+
+
+    try {
+        await Inertia.post(route('profile.update'), formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Устанавливаем правильный заголовок
+            },
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 </script>
 
 <template>
@@ -31,10 +60,10 @@ const form = useForm({
                 Update your account's profile information and email address.
             </p>
         </header>
-
-        <form @submit.prevent="form.patch(route('profile.update'))" class="mt-6 space-y-6">
+        <form @submit.prevent="onFormSubmit" enctype="multipart/form-data" class="mt-6 space-y-6">
+            <!--        <form @submit.prevent="onFormSubmit" enctype="multipart/form-data" class="mt-6 space-y-6">-->
             <div>
-                <InputLabel for="name" value="Name" />
+                <InputLabel for="name" value="Name"/>
 
                 <TextInput
                     id="name"
@@ -46,11 +75,11 @@ const form = useForm({
                     autocomplete="name"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name" />
+                <InputError class="mt-2" :message="form.errors.name"/>
             </div>
 
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="Email"/>
 
                 <TextInput
                     id="email"
@@ -61,7 +90,32 @@ const form = useForm({
                     autocomplete="username"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError class="mt-2" :message="form.errors.email"/>
+            </div>
+
+            <div>
+                <InputLabel for="content" value="Content"/>
+
+                <TextArea
+                    id="content"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.content"
+                    required
+                    autofocus
+                    autocomplete="img"
+                />
+
+                <InputError class="mt-2" :message="form.errors.content"/>
+            </div>
+
+            <div>
+                <InputLabel for="img" value="Image"/>
+
+                <FileUpload
+                    v-model="form.img"
+                    :name="'img'"
+                />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
